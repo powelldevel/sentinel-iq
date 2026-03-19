@@ -27,7 +27,7 @@
         <div id="sidebar">
             <div class="status-box">
                 <h2>AI Neural Search</h2>
-                <input type="text" id="queryInput" placeholder="Ask about Lephalale incidents...">
+                <input type="text" id="queryInput" placeholder="Ask about Lephalale news...">
                 <button class="btn" style="margin-top:15px;" onclick="queryAI()">Query Intelligence</button>
             </div>
             <div id="results" class="status-box">
@@ -48,15 +48,14 @@
 
         async function syncNews() {
             const status = document.getElementById('status-text');
-            status.innerText = "> Initializing Data Ingestion...";
+            status.innerText = "> Connecting to AI Engine...";
             try {
                 const response = await fetch(`${RENDER_URL}/ingest_news`, { method: 'POST' });
                 const data = await response.json();
                 alert("SUCCESS: AI Brain Synchronized!");
                 status.innerText = "> ONLINE: " + (data.message || "Data Ingested");
             } catch (error) {
-                alert("Check security settings! Ensure 'Insecure Content' is allowed.");
-                status.innerText = "> ERROR: Connection Blocked";
+                alert("Check security settings! Allow 'Insecure Content'.");
             }
         }
 
@@ -64,18 +63,19 @@
             const queryVal = document.getElementById('queryInput').value;
             const responseBox = document.getElementById('ai-response');
             if (!queryVal) return alert("Enter a question!");
+
             responseBox.innerText = "AI is thinking...";
             try {
                 const response = await fetch(`${RENDER_URL}/analyze`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    // CRITICAL FIX: Sends 'text' to match your main.py code
                     body: JSON.stringify({ text: queryVal }) 
                 });
                 const data = await response.json();
-                responseBox.innerText = data.result || data.message || JSON.stringify(data);
+                // MASTER KEY: Handles 'result' or 'answer' automatically
+                responseBox.innerText = data.result || data.answer || data.message || JSON.stringify(data);
             } catch (error) {
-                alert("Communication failed. Is the server awake?");
+                responseBox.innerText = "Communication failed. Is the server awake?";
             }
         }
     </script>
