@@ -12,7 +12,8 @@
         #main-container { display: flex; flex: 1; overflow: hidden; }
         #map { flex: 2; height: 100%; z-index: 1; }
         #sidebar { flex: 1; background: #1e293b; padding: 20px; overflow-y: auto; border-left: 1px solid #334155; }
-        .btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+        .btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        .btn:hover { background: #2563eb; }
         .status-box { background: #0f172a; padding: 20px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; }
         input { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; box-sizing: border-box; }
         #status-text { font-family: monospace; color: #10b981; font-size: 0.85rem; }
@@ -28,7 +29,7 @@
         <div id="sidebar">
             <div class="status-box">
                 <h2>AI Neural Search</h2>
-                <input type="text" id="queryInput" placeholder="Ask about Lephalale incidents...">
+                <input type="text" id="queryInput" placeholder="Ask about Lephalale news...">
                 <button class="btn" style="margin-top:15px;" onclick="queryAI()">Query Intelligence</button>
             </div>
             <div id="results" class="status-box">
@@ -70,9 +71,11 @@
                 const response = await fetch(`${RENDER_URL}/analyze`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: queryVal }) // Matches your backend requirement
+                    // CRITICAL FIX: Sends 'text' to match your main.py requirement
+                    body: JSON.stringify({ text: queryVal }) 
                 });
                 const data = await response.json();
+                // Displays the 'result' field from your backend
                 responseBox.innerText = data.result || data.message || data.answer || JSON.stringify(data);
             } catch (error) {
                 alert("Communication failed. Is the server awake?");
