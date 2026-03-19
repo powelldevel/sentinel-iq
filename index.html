@@ -12,7 +12,8 @@
         #main-container { display: flex; flex: 1; overflow: hidden; }
         #map { flex: 2; height: 100%; z-index: 1; }
         #sidebar { flex: 1; background: #1e293b; padding: 20px; overflow-y: auto; border-left: 1px solid #334155; }
-        .btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+        .btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        .btn:hover { background: #2563eb; }
         .status-box { background: #0f172a; padding: 20px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; }
         input { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; box-sizing: border-box; }
         #status-text { font-family: monospace; color: #10b981; font-size: 0.85rem; }
@@ -30,10 +31,14 @@
     <div id="sidebar">
         <div class="status-box">
             <h2>AI Neural Search</h2>
-            <input type="text" id="queryInput" placeholder="Ask about Lephalale incidents...">
+            <input type="text" id="queryInput" placeholder="Ask about Lephalale news...">
             <button class="btn" style="margin-top:15px;" onclick="queryAI()">Query Intelligence</button>
         </div>
         <div id="results" class="status-box">
+            <h2>AI Intelligence</h2>
+            <p id="ai-response" style="color:#94a3b8;">Waiting for query...</p>
+        </div>
+        <div class="status-box">
             <h2>System Logs</h2>
             <p id="status-text">> System Standby...</p>
         </div>
@@ -51,39 +56,35 @@
         const status = document.getElementById('status-text');
         status.innerText = "> Initializing Data Ingestion...";
         try {
-            // Updated to match your PyCharm: /ingest_news
             const response = await fetch(`${RENDER_URL}/ingest_news`, { method: 'POST' });
             const data = await response.json();
             alert("SUCCESS: AI Brain is Synchronized!");
             status.innerText = "> ONLINE: " + (data.message || "Data Ingested");
         } catch (error) {
-            alert("Sync Failed. Ensure you visited the /ingest link in a new tab first!");
-            status.innerText = "> ERROR: Insecure Connection Blocked";
+            alert("Check security settings! Ensure 'Insecure Content' is allowed.");
+            status.innerText = "> ERROR: Connection Blocked";
         }
     }
 
     async function queryAI() {
-        const queryInput = document.getElementById('queryInput');
-        const status = document.getElementById('status-text');
-        if (!queryInput.value) return alert("Enter a question!");
+        const queryVal = document.getElementById('queryInput').value;
+        const responseBox = document.getElementById('ai-response');
+        if (!queryVal) return alert("Enter a question!");
 
-        status.innerText = "> Searching Knowledge Base...";
+        responseBox.innerText = "AI is thinking...";
         try {
-            // Updated to match your PyCharm: /analyze
             const response = await fetch(`${RENDER_URL}/analyze`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: queryInput.value }) // Matches your PyCharm 'text' input
+                // FIX: Changed 'query' to 'text' to match your main.py code
+                body: JSON.stringify({ text: queryVal }) 
             });
             const data = await response.json();
             
-            // Displays whatever response your server sends back
-            const finalResult = data.answer || data.message || data.result || JSON.stringify(data);
-            
-            document.getElementById('results').innerHTML = `<h2>AI Intelligence</h2><p>${finalResult}</p>`;
-            status.innerText = "> Intelligence Report Generated";
+            // Displays the result or the raw message
+            responseBox.innerText = data.result || data.message || data.answer || JSON.stringify(data);
         } catch (error) {
-            alert("Query failed. Wake up the server first!");
+            alert("Communication failed. Is the server awake?");
         }
     }
 </script>
