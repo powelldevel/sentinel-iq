@@ -21,13 +21,13 @@
             </div>
             <div class="glass p-6 rounded-3xl">
                 <h2 class="text-emerald-400 font-bold mb-4">🧬 Data Ingestion</h2>
-                <button onclick="syncNews()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-bold mb-4">Sync Live News</button>
+                <button onclick="syncNews()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-bold mb-4 transition-all">Sync Live News</button>
                 <button onclick="clearMemory()" class="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-2xl text-sm">Clear Memory</button>
             </div>
             <div class="glass p-6 rounded-3xl">
                 <h2 class="text-cyan-400 font-bold mb-4">🧠 AI Neural Search</h2>
                 <input type="text" id="queryInput" placeholder="Search incidents..." class="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl mb-4 text-white">
-                <button onclick="askSentinel()" class="w-full bg-cyan-600 hover:bg-cyan-500 py-4 rounded-2xl font-bold">Query Intelligence</button>
+                <button onclick="askSentinel()" class="w-full bg-cyan-600 hover:bg-cyan-500 py-4 rounded-2xl font-bold transition-all">Query Intelligence</button>
             </div>
         </div>
         <div class="lg:col-span-2 space-y-6">
@@ -41,7 +41,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- YOUR OFFICIAL RENDER URL ---
         const RENDER_URL = "https://sentinel-iq-vswv.onrender.com";
 
         const map = L.map('map').setView([-23.6620, 27.7441], 13);
@@ -52,7 +51,7 @@
                 const res = await fetch(`${RENDER_URL}/ingest_news/`);
                 const data = await res.json();
                 alert("Success: " + data.status);
-            } catch (err) { alert("Cloud Connection Error"); }
+            } catch (err) { alert("Cloud Connection Error - Is the backend still waking up?"); }
         }
 
         async function askSentinel() {
