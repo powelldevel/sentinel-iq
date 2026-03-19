@@ -8,16 +8,14 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; display: flex; flex-direction: column; height: 100vh; }
-        #header { background: #1e293b; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        #header { background: #1e293b; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; }
         #main-container { display: flex; flex: 1; overflow: hidden; }
-        #map { flex: 2; height: 100%; z-index: 1; border-right: 1px solid #334155; }
-        #sidebar { flex: 1; background: #1e293b; padding: 20px; overflow-y: auto; }
-        .btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; width: auto; }
-        .btn:hover { background: #2563eb; transform: translateY(-1px); }
+        #map { flex: 2; height: 100%; z-index: 1; }
+        #sidebar { flex: 1; background: #1e293b; padding: 20px; overflow-y: auto; border-left: 1px solid #334155; }
+        .btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .status-box { background: #0f172a; padding: 20px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; }
         input { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; box-sizing: border-box; }
-        h2 { margin: 0 0 10px 0; color: #3b82f6; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
-        #status-text { font-family: 'Courier New', monospace; font-size: 0.9rem; margin-top: 10px; }
+        #status-text { font-family: monospace; color: #10b981; }
     </style>
 </head>
 <body>
@@ -32,19 +30,18 @@
     <div id="sidebar">
         <div class="status-box">
             <h2>AI Neural Search</h2>
-            <input type="text" id="queryInput" placeholder="Ask about Lephalale incidents...">
+            <input type="text" id="queryInput" placeholder="Ask about Lephalale news...">
             <button class="btn" style="width:100%; margin-top:15px;" onclick="queryAI()">Query Intelligence</button>
         </div>
         <div id="results" class="status-box">
             <h2>System Logs</h2>
-            <p id="status-text" style="color:#10b981;">> System Standby...</p>
+            <p id="status-text">> System Standby...</p>
         </div>
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // MATCHES YOUR WORKING URL FROM SCREENSHOT (186)
     const RENDER_URL = "https://sentinel-iq.onrender.com";
 
     const map = L.map('map').setView([-23.666, 27.733], 13);
@@ -57,39 +54,37 @@
             const response = await fetch(`${RENDER_URL}/ingest`);
             const data = await response.json();
             
-            // FIX FOR UNDEFINED: This looks for any successful message key
-            const msg = data.message || data.status || "Sync Complete";
+            // CATCH-ALL: Checks for 'message', then 'status', then the raw data
+            const msg = data.message || data.status || JSON.stringify(data);
             alert("SUCCESS: AI Brain is Synchronized!");
-            status.innerHTML = `<span style="color:#10b981;">> SUCCESS: ${msg}</span>`;
+            status.innerText = "> SUCCESS: " + msg;
         } catch (error) {
-            alert("Sync Blocked! Click the Lock Icon 🔒 in the address bar and 'Allow Insecure Content'.");
-            status.innerHTML = `<span style="color:#ef4444;">> ERROR: Connection Blocked by Browser</span>`;
+            alert("Sync Blocked! Use the Lock Icon 🔒 to 'Allow Insecure Content'.");
+            status.innerText = "> ERROR: Connection Blocked";
         }
     }
 
     async function queryAI() {
-        const query = document.getElementById('queryInput').value;
-        if (!query) return alert("Enter a question first!");
-        
+        const queryInput = document.getElementById('queryInput');
         const status = document.getElementById('status-text');
-        status.innerText = "> AI is processing intelligence...";
-        
+        if (!queryInput.value) return alert("Enter a question!");
+
+        status.innerText = "> AI is processing...";
         try {
             const response = await fetch(`${RENDER_URL}/query`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: query })
+                body: JSON.stringify({ query: queryInput.value })
             });
             const data = await response.json();
             
-            // FIX FOR UNDEFINED: Handles 'answer', 'response', or 'message'
-            const finalAnswer = data.answer || data.response || data.message || "No specific data returned.";
+            // CATCH-ALL: Checks for 'answer', then 'response', then 'message'
+            const finalResult = data.answer || data.response || data.message || JSON.stringify(data);
             
-            document.getElementById('results').innerHTML = `<h2>AI Intelligence</h2><p>${finalAnswer}</p>`;
-            status.innerHTML = `<span style="color:#10b981;">> Query Successful</span>`;
+            document.getElementById('results').innerHTML = `<h2>AI Intelligence</h2><p>${finalResult}</p>`;
+            status.innerText = "> Query Successful";
         } catch (error) {
-            alert("Query failed. Is the server awake?");
-            status.innerHTML = `<span style="color:#ef4444;">> ERROR: Neural Link Timeout</span>`;
+            alert("Query failed. Wake up the server first!");
         }
     }
 </script>
