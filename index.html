@@ -15,79 +15,73 @@
         .btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .status-box { background: #0f172a; padding: 20px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; }
         input { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; box-sizing: border-box; }
-        #status-text { font-family: monospace; color: #10b981; }
+        #status-text { font-family: monospace; color: #10b981; font-size: 0.85rem; }
     </style>
 </head>
 <body>
-
-<div id="header">
-    <h1 style="margin:0; font-size: 22px;">SentinelIQ <span style="font-weight:lighter; font-size:14px; color:#94a3b8;">| Applied AI</span></h1>
-    <button class="btn" onclick="syncNews()">Sync Live News</button>
-</div>
-
-<div id="main-container">
-    <div id="map"></div>
-    <div id="sidebar">
-        <div class="status-box">
-            <h2>AI Neural Search</h2>
-            <input type="text" id="queryInput" placeholder="Ask about Lephalale news...">
-            <button class="btn" style="width:100%; margin-top:15px;" onclick="queryAI()">Query Intelligence</button>
-        </div>
-        <div id="results" class="status-box">
-            <h2>System Logs</h2>
-            <p id="status-text">> System Standby...</p>
+    <div id="header">
+        <h1 style="margin:0; font-size: 22px;">SentinelIQ <span style="font-weight:lighter; font-size:14px; color:#94a3b8;">| Applied AI</span></h1>
+        <button class="btn" onclick="syncNews()">Sync Live News</button>
+    </div>
+    <div id="main-container">
+        <div id="map"></div>
+        <div id="sidebar">
+            <div class="status-box">
+                <h2>AI Neural Search</h2>
+                <input type="text" id="queryInput" placeholder="Ask about Lephalale news...">
+                <button class="btn" style="width:100%; margin-top:15px;" onclick="queryAI()">Query Intelligence</button>
+            </div>
+            <div id="results" class="status-box">
+                <h2>System Logs</h2>
+                <p id="status-text">> System Standby...</p>
+            </div>
         </div>
     </div>
-</div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const RENDER_URL = "https://sentinel-iq.onrender.com";
+        const map = L.map('map').setView([-23.666, 27.733], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-    const RENDER_URL = "https://sentinel-iq.onrender.com";
-
-    const map = L.map('map').setView([-23.666, 27.733], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-    async function syncNews() {
-        const status = document.getElementById('status-text');
-        status.innerText = "> Connecting to AI Engine...";
-        try {
-            const response = await fetch(`${RENDER_URL}/ingest`);
-            const data = await response.json();
-            
-            // CATCH-ALL: Checks for 'message', then 'status', then the raw data
-            const msg = data.message || data.status || JSON.stringify(data);
-            alert("SUCCESS: AI Brain is Synchronized!");
-            status.innerText = "> SUCCESS: " + msg;
-        } catch (error) {
-            alert("Sync Blocked! Use the Lock Icon 🔒 to 'Allow Insecure Content'.");
-            status.innerText = "> ERROR: Connection Blocked";
+        async function syncNews() {
+            const status = document.getElementById('status-text');
+            status.innerText = "> Initializing Data Ingestion...";
+            try {
+                const response = await fetch(`${RENDER_URL}/ingest`);
+                const data = await response.json();
+                const msg = data.message || data.status || "Sync Success";
+                alert("SUCCESS: AI Brain is Synchronized!");
+                status.innerText = "> ONLINE: " + msg;
+            } catch (error) {
+                alert("Check browser lock icon 🔒 and Allow Insecure Content!");
+                status.innerText = "> ERROR: Insecure Connection Blocked";
+            }
         }
-    }
 
-    async function queryAI() {
-        const queryInput = document.getElementById('queryInput');
-        const status = document.getElementById('status-text');
-        if (!queryInput.value) return alert("Enter a question!");
+        async function queryAI() {
+            const query = document.getElementById('queryInput').value;
+            const status = document.getElementById('status-text');
+            if (!query) return alert("Enter a question!");
 
-        status.innerText = "> AI is processing...";
-        try {
-            const response = await fetch(`${RENDER_URL}/query`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: queryInput.value })
-            });
-            const data = await response.json();
-            
-            // CATCH-ALL: Checks for 'answer', then 'response', then 'message'
-            const finalResult = data.answer || data.response || data.message || JSON.stringify(data);
-            
-            document.getElementById('results').innerHTML = `<h2>AI Intelligence</h2><p>${finalResult}</p>`;
-            status.innerText = "> Query Successful";
-        } catch (error) {
-            alert("Query failed. Wake up the server first!");
+            status.innerText = "> Analyzing Knowledge Base...";
+            try {
+                const response = await fetch(`${RENDER_URL}/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query })
+                });
+                const data = await response.json();
+                
+                // DEBUG LOGIC: Shows exactly what the AI says
+                console.log("AI Data Received:", data);
+                const finalResult = data.answer || data.response || data.message || JSON.stringify(data);
+                
+                document.getElementById('results').innerHTML = `<h2>AI Intelligence</h2><p>${finalResult}</p>`;
+                status.innerText = "> Intelligence Report Generated";
+            } catch (error) {
+                alert("Query failed. Wake up the /ingest link first!");
+            }
         }
-    }
-</script>
-
+    </script>
 </body>
 </html>
