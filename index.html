@@ -47,14 +47,16 @@
             const status = document.getElementById('status-text');
             status.innerText = "> Initializing Data Ingestion...";
             try {
+                // Try the main ingest link
                 const response = await fetch(`${RENDER_URL}/ingest`);
                 const data = await response.json();
-                const msg = data.message || data.status || "Sync Success";
                 alert("SUCCESS: AI Brain is Synchronized!");
-                status.innerText = "> ONLINE: " + msg;
+                status.innerText = "> ONLINE: " + (data.message || "Data Ingested");
             } catch (error) {
-                alert("Check browser lock icon 🔒 and Allow Insecure Content!");
-                status.innerText = "> ERROR: Insecure Connection Blocked";
+                // If /ingest fails, try the base link just to wake it up
+                await fetch(RENDER_URL);
+                alert("Server is waking up! Wait 30 seconds and click Sync again.");
+                status.innerText = "> ERROR: Server Warming Up";
             }
         }
 
@@ -63,23 +65,23 @@
             const status = document.getElementById('status-text');
             if (!query) return alert("Enter a question!");
 
-            status.innerText = "> Analyzing Knowledge Base...";
+            status.innerText = "> Searching Knowledge Base...";
             try {
                 const response = await fetch(`${RENDER_URL}/query`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ query: query })
                 });
+                
                 const data = await response.json();
                 
-                // DEBUG LOGIC: Shows exactly what the AI says
-                console.log("AI Data Received:", data);
-                const finalResult = data.answer || data.response || data.message || JSON.stringify(data);
+                // CATCH-ALL: This handles "Detail Not Found" by showing what the server DID send
+                const finalResult = data.answer || data.message || data.detail || JSON.stringify(data);
                 
                 document.getElementById('results').innerHTML = `<h2>AI Intelligence</h2><p>${finalResult}</p>`;
                 status.innerText = "> Intelligence Report Generated";
             } catch (error) {
-                alert("Query failed. Wake up the /ingest link first!");
+                alert("Query failed. Is the server awake?");
             }
         }
     </script>
