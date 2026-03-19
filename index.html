@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentinelIQ | Lephalale Station</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { background-color: #0b0f1a; color: #f8fafc; font-family: sans-serif; padding: 2rem; }
+        .glass { background: rgba(21, 29, 46, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        #map { height: 450px; border-radius: 16px; border: 1px solid #1e293b; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="space-y-6">
+            <div>
+                <h1 class="text-4xl font-extrabold text-cyan-400">SentinelIQ</h1>
+                <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Lephalale Station</p>
+            </div>
+            <div class="glass p-6 rounded-3xl">
+                <h2 class="text-emerald-400 font-bold mb-4">🧬 Data Ingestion</h2>
+                <button onclick="syncNews()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-bold mb-4">Sync News</button>
+                <button onclick="clearMemory()" class="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-2xl text-sm">Clear Memory</button>
+            </div>
+            <div class="glass p-6 rounded-3xl">
+                <h2 class="text-cyan-400 font-bold mb-4">🧠 AI Search</h2>
+                <input type="text" id="queryInput" placeholder="Search..." class="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl mb-4 text-white">
+                <button onclick="askSentinel()" class="w-full bg-cyan-600 hover:bg-cyan-500 py-4 rounded-2xl font-bold">Query AI</button>
+            </div>
+        </div>
+        <div class="lg:col-span-2 space-y-6">
+            <div id="map"></div>
+            <div class="glass p-8 rounded-3xl border-l-4 border-cyan-500 shadow-xl">
+                <h2 class="text-lg font-bold mb-3">AI Intelligence Report</h2>
+                <div id="reportBox" class="text-slate-400 italic">Awaiting input...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const RENDER_URL = "https://sentinel-iq-powelldevel.onrender.com";
+        const map = L.map('map').setView([-23.6620, 27.7441], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        async function syncNews() {
+            try {
+                const res = await fetch(`${RENDER_URL}/ingest_news/`);
+                const data = await res.json();
+                alert("Success: " + data.status);
+            } catch (err) { alert("Cloud Connection Error"); }
+        }
+
+        async function askSentinel() {
+            const q = document.getElementById('queryInput').value;
+            const report = document.getElementById('reportBox');
+            report.innerText = "Analyzing...";
+            try {
+                const res = await fetch(`${RENDER_URL}/ask_sentinel/?question=${encodeURIComponent(q)}`);
+                const data = await res.json();
+                report.innerHTML = `<div class="not-italic text-slate-100">${data.answer}</div>`;
+            } catch (err) { report.innerText = "Connection Error."; }
+        }
+
+        async function clearMemory() {
+            if (confirm("Wipe AI memory?")) {
+                await fetch(`${RENDER_URL}/clear_memory/`);
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
