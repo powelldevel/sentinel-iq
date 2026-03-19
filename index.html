@@ -12,82 +12,72 @@
         #main-container { display: flex; flex: 1; overflow: hidden; }
         #map { flex: 2; height: 100%; z-index: 1; }
         #sidebar { flex: 1; background: #1e293b; padding: 20px; overflow-y: auto; border-left: 1px solid #334155; }
-        .btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
-        .btn:hover { background: #2563eb; }
+        .btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
         .status-box { background: #0f172a; padding: 20px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; }
         input { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; box-sizing: border-box; }
         #status-text { font-family: monospace; color: #10b981; font-size: 0.85rem; }
     </style>
 </head>
 <body>
-
-<div id="header">
-    <h1 style="margin:0; font-size: 22px;">SentinelIQ <span style="font-weight:lighter; font-size:14px; color:#94a3b8;">| Applied AI</span></h1>
-    <button class="btn" style="width:auto;" onclick="syncNews()">Sync Live News</button>
-</div>
-
-<div id="main-container">
-    <div id="map"></div>
-    <div id="sidebar">
-        <div class="status-box">
-            <h2>AI Neural Search</h2>
-            <input type="text" id="queryInput" placeholder="Ask about Lephalale news...">
-            <button class="btn" style="margin-top:15px;" onclick="queryAI()">Query Intelligence</button>
-        </div>
-        <div id="results" class="status-box">
-            <h2>AI Intelligence</h2>
-            <p id="ai-response" style="color:#94a3b8;">Waiting for query...</p>
-        </div>
-        <div class="status-box">
-            <h2>System Logs</h2>
-            <p id="status-text">> System Standby...</p>
+    <div id="header">
+        <h1 style="margin:0; font-size: 22px;">SentinelIQ <span style="font-weight:lighter; font-size:14px; color:#94a3b8;">| Applied AI</span></h1>
+        <button class="btn" style="width:auto;" onclick="syncNews()">Sync Live News</button>
+    </div>
+    <div id="main-container">
+        <div id="map"></div>
+        <div id="sidebar">
+            <div class="status-box">
+                <h2>AI Neural Search</h2>
+                <input type="text" id="queryInput" placeholder="Ask about Lephalale incidents...">
+                <button class="btn" style="margin-top:15px;" onclick="queryAI()">Query Intelligence</button>
+            </div>
+            <div id="results" class="status-box">
+                <h2>AI Intelligence</h2>
+                <p id="ai-response" style="color:#94a3b8;">Waiting for query...</p>
+            </div>
+            <div class="status-box">
+                <h2>System Logs</h2>
+                <p id="status-text">> System Standby...</p>
+            </div>
         </div>
     </div>
-</div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const RENDER_URL = "https://sentinel-iq.onrender.com";
+        const map = L.map('map').setView([-23.666, 27.733], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-    const RENDER_URL = "https://sentinel-iq.onrender.com";
-
-    const map = L.map('map').setView([-23.666, 27.733], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-    async function syncNews() {
-        const status = document.getElementById('status-text');
-        status.innerText = "> Initializing Data Ingestion...";
-        try {
-            const response = await fetch(`${RENDER_URL}/ingest_news`, { method: 'POST' });
-            const data = await response.json();
-            alert("SUCCESS: AI Brain is Synchronized!");
-            status.innerText = "> ONLINE: " + (data.message || "Data Ingested");
-        } catch (error) {
-            alert("Check security settings! Ensure 'Insecure Content' is allowed.");
-            status.innerText = "> ERROR: Connection Blocked";
+        async function syncNews() {
+            const status = document.getElementById('status-text');
+            status.innerText = "> Initializing Data Ingestion...";
+            try {
+                const response = await fetch(`${RENDER_URL}/ingest_news`, { method: 'POST' });
+                const data = await response.json();
+                alert("SUCCESS: AI Brain is Synchronized!");
+                status.innerText = "> ONLINE: " + (data.message || "Data Ingested");
+            } catch (error) {
+                alert("Check security settings! Ensure 'Insecure Content' is allowed.");
+                status.innerText = "> ERROR: Connection Blocked";
+            }
         }
-    }
 
-    async function queryAI() {
-        const queryVal = document.getElementById('queryInput').value;
-        const responseBox = document.getElementById('ai-response');
-        if (!queryVal) return alert("Enter a question!");
-
-        responseBox.innerText = "AI is thinking...";
-        try {
-            const response = await fetch(`${RENDER_URL}/analyze`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                // FIX: Changed 'query' to 'text' to match your main.py code
-                body: JSON.stringify({ text: queryVal }) 
-            });
-            const data = await response.json();
-            
-            // Displays the result or the raw message
-            responseBox.innerText = data.result || data.message || data.answer || JSON.stringify(data);
-        } catch (error) {
-            alert("Communication failed. Is the server awake?");
+        async function queryAI() {
+            const queryVal = document.getElementById('queryInput').value;
+            const responseBox = document.getElementById('ai-response');
+            if (!queryVal) return alert("Enter a question!");
+            responseBox.innerText = "AI is thinking...";
+            try {
+                const response = await fetch(`${RENDER_URL}/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: queryVal }) // Matches your backend requirement
+                });
+                const data = await response.json();
+                responseBox.innerText = data.result || data.message || data.answer || JSON.stringify(data);
+            } catch (error) {
+                alert("Communication failed. Is the server awake?");
+            }
         }
-    }
-</script>
-
+    </script>
 </body>
 </html>
