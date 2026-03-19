@@ -2,18 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>SentinelIQ | AI Incident Station</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; display: flex; flex-direction: column; height: 100vh; }
-        #header { background: #1e293b; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; }
+        #header { background: #1e293b; padding: 15px 20px; display: flex; border-bottom: 2px solid #3b82f6; }
         #main-container { display: flex; flex: 1; overflow: hidden; }
         #map { flex: 2; height: 100%; z-index: 1; }
         #sidebar { flex: 1; background: #1e293b; padding: 20px; overflow-y: auto; border-left: 1px solid #334155; }
-        .btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
-        .btn:hover { background: #2563eb; }
+        .btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
         .status-box { background: #0f172a; padding: 20px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; }
         input { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; box-sizing: border-box; }
         #status-text { font-family: monospace; color: #10b981; font-size: 0.85rem; }
@@ -22,14 +20,14 @@
 <body>
     <div id="header">
         <h1 style="margin:0; font-size: 22px;">SentinelIQ <span style="font-weight:lighter; font-size:14px; color:#94a3b8;">| Applied AI</span></h1>
-        <button class="btn" style="width:auto;" onclick="syncNews()">Sync Live News</button>
+        <button class="btn" style="width:auto; margin-left:auto;" onclick="syncNews()">Sync Live News</button>
     </div>
     <div id="main-container">
         <div id="map"></div>
         <div id="sidebar">
             <div class="status-box">
                 <h2>AI Neural Search</h2>
-                <input type="text" id="queryInput" placeholder="Ask about Lephalale news...">
+                <input type="text" id="queryInput" placeholder="Ask about Lephalale incidents...">
                 <button class="btn" style="margin-top:15px;" onclick="queryAI()">Query Intelligence</button>
             </div>
             <div id="results" class="status-box">
@@ -54,7 +52,7 @@
             try {
                 const response = await fetch(`${RENDER_URL}/ingest_news`, { method: 'POST' });
                 const data = await response.json();
-                alert("SUCCESS: AI Brain is Synchronized!");
+                alert("SUCCESS: AI Brain Synchronized!");
                 status.innerText = "> ONLINE: " + (data.message || "Data Ingested");
             } catch (error) {
                 alert("Check security settings! Ensure 'Insecure Content' is allowed.");
@@ -71,12 +69,11 @@
                 const response = await fetch(`${RENDER_URL}/analyze`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    // CRITICAL FIX: Sends 'text' to match your main.py requirement
+                    // CRITICAL FIX: Sends 'text' to match your main.py code
                     body: JSON.stringify({ text: queryVal }) 
                 });
                 const data = await response.json();
-                // Displays the 'result' field from your backend
-                responseBox.innerText = data.result || data.message || data.answer || JSON.stringify(data);
+                responseBox.innerText = data.result || data.message || JSON.stringify(data);
             } catch (error) {
                 alert("Communication failed. Is the server awake?");
             }
