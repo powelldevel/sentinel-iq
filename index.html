@@ -3,74 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SentinelIQ | Lephalale Station</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>SentinelIQ | AI Incident Station</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { background-color: #0b0f1a; color: #f8fafc; font-family: sans-serif; padding: 2rem; }
-        .glass { background: rgba(21, 29, 46, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        #map { height: 450px; border-radius: 16px; border: 1px solid #1e293b; width: 100%; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: white; display: flex; flex-direction: column; height: 100vh; }
+        #header { background: #1e293b; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; }
+        #main-container { display: flex; flex: 1; overflow: hidden; }
+        #map { flex: 2; height: 100%; z-index: 1; }
+        #sidebar { flex: 1; background: #1e293b; padding: 20px; overflow-y: auto; border-left: 1px solid #334155; }
+        .btn { background: #3b82f6; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background: #2563eb; }
+        .status-box { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #334155; }
+        input { width: 100%; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+        h2 { margin-top: 0; color: #3b82f6; }
     </style>
 </head>
 <body>
-    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="space-y-6">
-            <div>
-                <h1 class="text-4xl font-extrabold text-cyan-400">SentinelIQ</h1>
-                <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Lephalale Station</p>
-            </div>
-            <div class="glass p-6 rounded-3xl">
-                <h2 class="text-emerald-400 font-bold mb-4">🧬 Data Ingestion</h2>
-                <button onclick="syncNews()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-bold mb-4 transition-all">Sync Live News</button>
-                <button onclick="clearMemory()" class="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-2xl text-sm">Clear Memory</button>
-            </div>
-            <div class="glass p-6 rounded-3xl">
-                <h2 class="text-cyan-400 font-bold mb-4">🧠 AI Neural Search</h2>
-                <input type="text" id="queryInput" placeholder="Search incidents..." class="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl mb-4 text-white">
-                <button onclick="askSentinel()" class="w-full bg-cyan-600 hover:bg-cyan-500 py-4 rounded-2xl font-bold transition-all">Query Intelligence</button>
-            </div>
+
+<div id="header">
+    <h1 style="margin:0; font-size: 24px;">SentinelIQ <span style="font-weight:lighter; font-size:14px;">| Lephalale AI Station</span></h1>
+    <button class="btn" onclick="syncNews()">Sync Live News</button>
+</div>
+
+<div id="main-container">
+    <div id="map"></div>
+    <div id="sidebar">
+        <div class="status-box">
+            <h2>AI Neural Search</h2>
+            <p>Ask about incidents or safety in the area:</p>
+            <input type="text" id="queryInput" placeholder="e.g., Are there any road closures?">
+            <button class="btn" style="width:100%; margin-top:10px;" onclick="queryAI()">Query Intelligence</button>
         </div>
-        <div class="lg:col-span-2 space-y-6">
-            <div id="map"></div>
-            <div class="glass p-8 rounded-3xl border-l-4 border-cyan-500 shadow-xl">
-                <h2 class="text-lg font-bold mb-3">AI Intelligence Report</h2>
-                <div id="reportBox" class="text-slate-400 italic">Awaiting input...</div>
-            </div>
+        <div id="results" class="status-box">
+            <h2>System Logs</h2>
+            <p id="status-text">Ready for sync...</p>
         </div>
     </div>
+</div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        const RENDER_URL = "https://sentinel-iq-vswv.onrender.com";
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // THE CRITICAL FIX: Added the 's' to https
+    const RENDER_URL = "https://sentinel-iq-vswv.onrender.com";
 
-        const map = L.map('map').setView([-23.6620, 27.7441], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    // Initialize Map on Lephalale
+    const map = L.map('map').setView([-23.666, 27.733], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-        async function syncNews() {
-            try {
-                const res = await fetch(`${RENDER_URL}/ingest_news/`);
-                const data = await res.json();
-                alert("Success: " + data.status);
-            } catch (err) { alert("Cloud Connection Error - Is the backend still waking up?"); }
+    async function syncNews() {
+        const statusText = document.getElementById('status-text');
+        statusText.innerText = "Syncing with Cloud AI...";
+        try {
+            const response = await fetch(`${RENDER_URL}/ingest`);
+            const data = await response.json();
+            alert("Success: " + data.message);
+            statusText.innerText = "Neural Database Updated!";
+        } catch (error) {
+            console.error(error);
+            alert("Cloud Connection Error - Server is waking up. Try again in 30 seconds.");
+            statusText.innerText = "Connection Failed.";
         }
+    }
 
-        async function askSentinel() {
-            const q = document.getElementById('queryInput').value;
-            const report = document.getElementById('reportBox');
-            report.innerText = "Analyzing neural patterns...";
-            try {
-                const res = await fetch(`${RENDER_URL}/ask_sentinel/?question=${encodeURIComponent(q)}`);
-                const data = await res.json();
-                report.innerHTML = `<div class="not-italic text-slate-100">${data.answer}</div>`;
-            } catch (err) { report.innerText = "Error connecting to AI engine."; }
-        }
+    async function queryAI() {
+        const query = document.getElementById('queryInput').value;
+        const statusText = document.getElementById('status-text');
+        if (!query) return alert("Please enter a question.");
 
-        async function clearMemory() {
-            if (confirm("Wipe AI memory?")) {
-                await fetch(`${RENDER_URL}/clear_memory/`);
-                location.reload();
-            }
+        statusText.innerText = "AI is thinking...";
+        try {
+            const response = await fetch(`${RENDER_URL}/query`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: query })
+            });
+            const data = await response.json();
+            document.getElementById('results').innerHTML = `<h2>AI Response</h2><p>${data.answer}</p>`;
+        } catch (error) {
+            alert("AI Engine is busy. Please try again.");
+            statusText.innerText = "Query Failed.";
         }
-    </script>
+    }
+</script>
+
 </body>
 </html>
