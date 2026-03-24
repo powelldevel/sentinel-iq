@@ -4,51 +4,72 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>SentinelIQ | AI Incident Station</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { margin: 0; font-family: sans-serif; background: #0f172a; color: white; padding: 20px; }
-        .box { background: #1e293b; padding: 20px; border-radius: 10px; border: 1px solid #3b82f6; margin-bottom: 20px; }
-        button { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: white; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; display: flex; flex-direction: column; height: 100vh; }
+        #header { background: #1e293b; padding: 15px 20px; display: flex; border-bottom: 2px solid #3b82f6; align-items: center; }
+        #main-container { display: flex; flex: 1; overflow: hidden; }
+        #map { flex: 2; height: 100%; z-index: 1; border-right: 1px solid #334155; }
+        #sidebar { flex: 1; background: #1e293b; padding: 20px; overflow-y: auto; }
+        .btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+        .status-box { background: #0f172a; padding: 20px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; box-sizing: border-box; }
+        #status-text { font-family: monospace; color: #10b981; font-size: 0.85rem; }
     </style>
 </head>
 <body>
-    <h1>SentinelIQ Dashboard</h1>
-    <div class="box">
-        <button onclick="sync()">1. Sync Live News</button>
-        <p id="sync-status">Status: Waiting...</p>
+    <div id="header">
+        <h1 style="margin:0; font-size: 22px;">SentinelIQ <span style="font-weight:lighter; font-size:14px; color:#94a3b8;">| Applied AI</span></h1>
+        <button class="btn" style="width:auto; margin-left:auto;" onclick="syncNews()">Sync Live News</button>
     </div>
-    <div class="box">
-        <h2>2. Ask AI</h2>
-        <input type="text" id="userInput" placeholder="Ask about Lephalale news...">
-        <button onclick="ask()">Query Intelligence</button>
-        <div id="ai-output" style="margin-top:20px; color: #10b981; font-weight: bold;"></div>
+    <div id="main-container">
+        <div id="map"></div>
+        <div id="sidebar">
+            <div class="status-box">
+                <h2>AI Neural Search</h2>
+                <input type="text" id="queryInput" placeholder="Ask about Lephalale news...">
+                <button class="btn" style="margin-top:15px;" onclick="queryAI()">Query Intelligence</button>
+            </div>
+            <div class="status-box">
+                <h2>AI Intelligence</h2>
+                <p id="ai-response" style="color:#3b82f6;">Waiting for query...</p>
+            </div>
+            <div class="status-box">
+                <h2>System Logs</h2>
+                <p id="status-text">> System Standby...</p>
+            </div>
+        </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const API_URL = "https://sentinel-iq.onrender.com";
+        const RENDER_URL = "https://sentinel-iq.onrender.com";
+        const map = L.map('map').setView([-23.666, 27.733], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        async function sync() {
-            document.getElementById('sync-status').innerText = "Syncing...";
+        async function syncNews() {
+            const status = document.getElementById('status-text');
+            status.innerText = "> Syncing...";
             try {
-                const r = await fetch(`${API_URL}/ingest_news`, { method: 'POST' });
+                const r = await fetch(`${RENDER_URL}/ingest_news`, { method: 'POST' });
                 const d = await r.json();
-                document.getElementById('sync-status').innerText = "ONLINE: " + (d.message || "Success");
-            } catch (e) { document.getElementById('sync-status').innerText = "Error: Wake up server!"; }
+                status.innerText = "> ONLINE: " + d.message;
+            } catch (e) { status.innerText = "> ERROR: Wake up Render!"; }
         }
 
-        async function ask() {
-            const val = document.getElementById('userInput').value;
-            const out = document.getElementById('ai-output');
-            out.innerText = "AI is thinking...";
+        async function queryAI() {
+            const val = document.getElementById('queryInput').value;
+            const out = document.getElementById('ai-response');
+            if (!val) return;
+            out.innerText = "Searching news context...";
             try {
-                const r = await fetch(`${API_URL}/analyze`, {
+                const r = await fetch(`${RENDER_URL}/analyze`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: val }) // SENDS 'text'
+                    body: JSON.stringify({ text: val }) 
                 });
                 const d = await r.json();
-                // READS 'result'
-                out.innerText = d.result || d.detail[0].msg || JSON.stringify(d);
+                out.innerText = d.result || d.message || "No results.";
             } catch (e) { out.innerText = "Connection failed."; }
         }
     </script>
